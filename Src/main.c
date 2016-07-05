@@ -34,7 +34,7 @@
 #include "stm32f4xx_hal.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "key.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -48,6 +48,8 @@ SPI_HandleTypeDef hspi1;
 SPI_HandleTypeDef hspi2;
 DMA_HandleTypeDef hdma_spi1_tx;
 DMA_HandleTypeDef hdma_spi2_tx;
+
+TIM_HandleTypeDef htim2;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
@@ -64,6 +66,7 @@ static void MX_I2C1_Init(void);
 static void MX_IWDG_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_SPI2_Init(void);
+static void MX_TIM2_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -71,14 +74,15 @@ static void MX_SPI2_Init(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
-
+extern uint8_t  Key_Up;
+extern uint32_t Time_1ms;
 /* USER CODE END 0 */
 
 int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
+	KeyStatus Key_Value;
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -97,6 +101,7 @@ int main(void)
   MX_IWDG_Init();
   MX_SPI1_Init();
   MX_SPI2_Init();
+  MX_TIM2_Init();
 
   /* USER CODE BEGIN 2 */
 
@@ -109,7 +114,19 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-
+		Key_Value = Key_Scan();
+		if(Key_Value)
+		{
+			if(Key_Value == Key_Long)
+			{
+				                  // 添加 长按按键代码
+			}
+			
+			if(Key_Value == Key_Short)
+			{
+			                    // 添加 短按按键代码	
+			}
+		}
   }
   /* USER CODE END 3 */
 
@@ -271,6 +288,38 @@ static void MX_SPI2_Init(void)
 
 }
 
+/* TIM2 init function */
+static void MX_TIM2_Init(void)
+{
+
+  TIM_ClockConfigTypeDef sClockSourceConfig;
+  TIM_MasterConfigTypeDef sMasterConfig;
+
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 2599;                  // 26MHz / 2600 = 10KHz     0.1ms
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 9;                        // 0.1ms * 10 = 1ms 
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+}
+
 /** 
   * Enable DMA controller clock
   */
@@ -343,11 +392,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(PGOOD_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PA12 */
-  GPIO_InitStruct.Pin = GPIO_PIN_12;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  /*Configure GPIO pin : KEY_MODE_Pin */
+  GPIO_InitStruct.Pin = KEY_MODE_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_Init(KEY_MODE_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 1, 2);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
 
@@ -369,6 +422,8 @@ void Error_Handler(void)
   }
   /* USER CODE END Error_Handler */ 
 }
+
+
 
 #ifdef USE_FULL_ASSERT
 

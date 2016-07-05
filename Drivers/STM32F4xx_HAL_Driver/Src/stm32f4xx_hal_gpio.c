@@ -125,6 +125,9 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 
+uint8_t Key_Up = 0;
+extern TIM_HandleTypeDef htim2;
+
 /** @addtogroup STM32F4xx_HAL_Driver
   * @{
   */
@@ -524,6 +527,15 @@ __weak void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   /* NOTE: This function Should not be modified, when the callback is needed,
            the HAL_GPIO_EXTI_Callback could be implemented in the user file
    */
+	if( HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_12) )     // 上升沿
+	{
+			HAL_TIM_Base_Stop_IT(&htim2);    // 按键松起，关闭定时器
+			Key_Up = 1;                      // 按键松起标志
+	}
+	else                                           // 下降沿                                   
+	{
+			HAL_TIM_Base_Start_IT(&htim2);   // 按键按下，开启定时器
+	}
 }
 
 /**

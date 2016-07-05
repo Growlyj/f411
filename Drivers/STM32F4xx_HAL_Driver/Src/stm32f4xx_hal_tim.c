@@ -128,6 +128,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 
+uint32_t Time_1ms = 0;
 /** @addtogroup STM32F4xx_HAL_Driver
   * @{
   */
@@ -4298,6 +4299,7 @@ __weak void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   /* NOTE : This function Should not be modified, when the callback is needed,
             the __HAL_TIM_PeriodElapsedCallback could be implemented in the user file
    */
+	Time_1ms++;        
 }
 
 /**

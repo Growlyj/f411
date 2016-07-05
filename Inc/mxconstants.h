@@ -61,6 +61,8 @@
 #define PGOOD_GPIO_Port GPIOA
 #define STBY_Pin GPIO_PIN_11
 #define STBY_GPIO_Port GPIOA
+#define KEY_MODE_Pin GPIO_PIN_12
+#define KEY_MODE_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
